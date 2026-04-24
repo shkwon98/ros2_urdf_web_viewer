@@ -8,6 +8,12 @@ HTTP asset server.
 It is designed for quickly inspecting robot descriptions and joint states from
 a browser without building a custom frontend for each robot.
 
+## Demo
+
+| Desktop | Mobile |
+| --- | --- |
+| ![Desktop demo](docs/desktop-demo.gif) | ![Mobile demo](docs/mobile-demo.gif) |
+
 ## Features
 
 - ROS 2 launch file that starts the web viewer, `rosbridge_websocket`, and

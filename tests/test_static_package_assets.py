@@ -122,6 +122,14 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("/home/", readme)
         self.assertNotIn("this workspace", readme)
 
+    def test_readme_demo_gifs_reference_existing_docs_assets(self):
+        readme = (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/desktop-demo.gif", readme)
+        self.assertIn("docs/mobile-demo.gif", readme)
+        self.assertTrue((PACKAGE_ROOT / "docs" / "desktop-demo.gif").is_file())
+        self.assertTrue((PACKAGE_ROOT / "docs" / "mobile-demo.gif").is_file())
+
     def test_viewer_launch_does_not_publish_robot_description(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
             encoding="utf-8"
