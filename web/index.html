@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ROS 2 URDF Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="./viewer-config.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+          "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.6/src/URDFLoader.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="control-rail">
+        <header class="brand-block">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <h1>ROS 2 URDF Viewer</h1>
+            <p id="fixed-frame-label">Frame: base</p>
+          </div>
+        </header>
+
+        <section class="rail-section">
+          <div class="section-heading">Connection</div>
+          <label>
+            WebSocket
+            <input id="rosbridge-url" type="text" autocomplete="off" />
+          </label>
+          <div class="button-row">
+            <button id="connect-button" class="primary" type="button">
+              <i data-lucide="radio" aria-hidden="true"></i>
+              <span>Connect</span>
+            </button>
+            <button id="disconnect-button" type="button" title="Disconnect">
+              <i data-lucide="power" aria-hidden="true"></i>
+            </button>
+          </div>
+        </section>
+
+        <section class="rail-section">
+          <div class="section-heading">Topics</div>
+          <label>
+            Description
+            <input id="robot-description-topic" type="text" autocomplete="off" />
+          </label>
+          <label>
+            Joint states
+            <input id="joint-states-topic" type="text" autocomplete="off" />
+          </label>
+        </section>
+
+        <section class="rail-section">
+          <div class="section-heading">Render</div>
+          <label class="toggle-line">
+            <input id="collision-toggle" type="checkbox" />
+            <span>Collision meshes</span>
+          </label>
+          <label class="toggle-line">
+            <input id="grid-toggle" type="checkbox" checked />
+            <span>Grid</span>
+          </label>
+          <button id="reload-button" type="button">
+            <i data-lucide="refresh-cw" aria-hidden="true"></i>
+            <span>Reload URDF</span>
+          </button>
+        </section>
+
+        <dl class="status-list">
+          <div>
+            <dt>ROS</dt>
+            <dd id="ros-status">offline</dd>
+          </div>
+          <div>
+            <dt>URDF</dt>
+            <dd id="urdf-status">waiting</dd>
+          </div>
+          <div>
+            <dt>Joints</dt>
+            <dd id="joint-status">0 updates</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <main class="viewer-stage">
+        <canvas id="viewer-canvas"></canvas>
+        <div class="stage-toolbar">
+          <button id="fit-button" type="button" title="Fit robot">
+            <i data-lucide="scan" aria-hidden="true"></i>
+          </button>
+          <button id="reset-view-button" type="button" title="Reset view">
+            <i data-lucide="rotate-3d" aria-hidden="true"></i>
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
