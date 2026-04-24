@@ -115,10 +115,13 @@ function setSelectOptions(select, topics, placeholder) {
   const previousValue = select.value;
   select.replaceChildren();
 
-  const placeholderOption = document.createElement("option");
-  placeholderOption.value = "";
-  placeholderOption.textContent = placeholder;
-  select.appendChild(placeholderOption);
+  if (topics.length === 0) {
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholder;
+    select.appendChild(placeholderOption);
+    return;
+  }
 
   topics.forEach(({ name, type }) => {
     const option = document.createElement("option");

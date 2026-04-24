@@ -44,6 +44,13 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("fixedFrameLabel", app_js)
         self.assertNotIn("refreshTopicsButton", app_js)
 
+    def test_topic_empty_placeholders_only_render_when_no_topics_exist(self):
+        app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn("if (topics.length === 0)", app_js)
+        self.assertIn("placeholderOption.textContent = placeholder", app_js)
+        self.assertIn("return;", app_js)
+
     def test_launch_file_starts_rosbridge_and_rosapi_unconditionally(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
             encoding="utf-8"
