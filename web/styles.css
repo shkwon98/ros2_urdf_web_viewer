@@ -37,7 +37,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -117,7 +118,8 @@ label {
   font-weight: 700;
 }
 
-input[type="text"] {
+input[type="text"],
+select {
   width: 100%;
   min-width: 0;
   height: 38px;
@@ -129,7 +131,17 @@ input[type="text"] {
   outline: none;
 }
 
-input[type="text"]:focus {
+select {
+  cursor: pointer;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+input[type="text"]:focus,
+select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgb(34 90 154 / 14%);
 }

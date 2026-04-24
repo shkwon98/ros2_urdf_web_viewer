@@ -57,8 +57,6 @@ class TestAssetServerHelpers(unittest.TestCase):
     def test_build_viewer_config_omits_empty_optional_values(self):
         config = build_viewer_config(
             rosbridge_url="",
-            robot_description_topic="/robot_description",
-            joint_states_topic="/joint_states",
             asset_base_url="",
             fixed_frame="base_link",
         )
@@ -66,8 +64,6 @@ class TestAssetServerHelpers(unittest.TestCase):
         self.assertEqual(
             config,
             {
-                "robotDescriptionTopic": "/robot_description",
-                "jointStatesTopic": "/joint_states",
                 "fixedFrame": "base_link",
             },
         )

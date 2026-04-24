@@ -8,8 +8,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    robot_description_topic = LaunchConfiguration("robot_description_topic")
-    joint_states_topic = LaunchConfiguration("joint_states_topic")
     rosbridge_port = LaunchConfiguration("rosbridge_port")
     rosbridge_url = LaunchConfiguration("rosbridge_url")
     web_host = LaunchConfiguration("web_host")
@@ -17,19 +15,10 @@ def generate_launch_description():
     asset_base_url = LaunchConfiguration("asset_base_url")
     fixed_frame = LaunchConfiguration("fixed_frame")
     start_rosbridge = LaunchConfiguration("start_rosbridge")
+    start_rosapi = LaunchConfiguration("start_rosapi")
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "robot_description_topic",
-                default_value="/robot_description",
-                description="std_msgs/String topic carrying the URDF XML.",
-            ),
-            DeclareLaunchArgument(
-                "joint_states_topic",
-                default_value="/joint_states",
-                description="sensor_msgs/JointState topic for live joint updates.",
-            ),
             DeclareLaunchArgument(
                 "fixed_frame",
                 default_value="base_link",
@@ -65,6 +54,11 @@ def generate_launch_description():
                 default_value="true",
                 description="Start rosbridge_websocket from this launch file.",
             ),
+            DeclareLaunchArgument(
+                "start_rosapi",
+                default_value="true",
+                description="Start rosapi_node for browser topic discovery.",
+            ),
             IncludeLaunchDescription(
                 AnyLaunchDescriptionSource(
                     PathJoinSubstitution(
@@ -79,6 +73,12 @@ def generate_launch_description():
                 condition=IfCondition(start_rosbridge),
             ),
             Node(
+                package="rosapi",
+                executable="rosapi_node",
+                output="screen",
+                condition=IfCondition(start_rosapi),
+            ),
+            Node(
                 package="ros2_urdf_web_viewer",
                 executable="ros2_urdf_web_viewer_server",
                 output="screen",
@@ -91,10 +91,6 @@ def generate_launch_description():
                     rosbridge_url,
                     "--rosbridge-port",
                     rosbridge_port,
-                    "--robot-description-topic",
-                    robot_description_topic,
-                    "--joint-states-topic",
-                    joint_states_topic,
                     "--asset-base-url",
                     asset_base_url,
                     "--fixed-frame",

@@ -16,14 +16,22 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)
         self.assertIn("viewer-config.js", index_html)
+        self.assertIn('id="refresh-topics-button"', index_html)
+        self.assertIn('<select id="robot-description-topic"', index_html)
+        self.assertIn('<select id="joint-states-topic"', index_html)
+        self.assertNotIn('id="robot-description-topic" type="text"', index_html)
+        self.assertNotIn('id="joint-states-topic" type="text"', index_html)
 
     def test_launch_file_exposes_ros_topics_and_ports(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
             encoding="utf-8"
         )
 
-        self.assertIn("robot_description_topic", launch_file)
-        self.assertIn("joint_states_topic", launch_file)
+        self.assertIn("start_rosapi", launch_file)
+        self.assertIn('package="rosapi"', launch_file)
+        self.assertIn('executable="rosapi_node"', launch_file)
+        self.assertNotIn("robot_description_topic", launch_file)
+        self.assertNotIn("joint_states_topic", launch_file)
         self.assertIn("rosbridge_port", launch_file)
         self.assertIn("ros2_urdf_web_viewer_server", launch_file)
 
@@ -37,6 +45,7 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("joint_state_publisher_gui", launch_file)
         self.assertNotIn("xacro_file", launch_file)
         self.assertIn("<name>ros2_urdf_web_viewer</name>", package_xml)
+        self.assertIn("<exec_depend>rosapi</exec_depend>", package_xml)
         self.assertNotIn("ros2_urdf_web_viewer_example", package_xml)
         self.assertNotIn("<exec_depend>robot_state_publisher</exec_depend>", package_xml)
         self.assertNotIn("<exec_depend>xacro</exec_depend>", package_xml)

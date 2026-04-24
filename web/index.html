@@ -50,12 +50,20 @@
           <div class="section-heading">Topics</div>
           <label>
             Description
-            <input id="robot-description-topic" type="text" autocomplete="off" />
+            <select id="robot-description-topic">
+              <option value="">Connect to discover topics</option>
+            </select>
           </label>
           <label>
             Joint states
-            <input id="joint-states-topic" type="text" autocomplete="off" />
+            <select id="joint-states-topic">
+              <option value="">Connect to discover topics</option>
+            </select>
           </label>
+          <button id="refresh-topics-button" type="button">
+            <i data-lucide="list-filter" aria-hidden="true"></i>
+            <span>Refresh topics</span>
+          </button>
         </section>
 
         <section class="rail-section">

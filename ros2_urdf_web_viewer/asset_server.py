@@ -60,16 +60,11 @@ def safe_resource_path(package_root: Path, relative_path: str) -> Path:
 def build_viewer_config(
     *,
     rosbridge_url: str,
-    robot_description_topic: str,
-    joint_states_topic: str,
     asset_base_url: str,
     fixed_frame: str,
     rosbridge_port: str | int | None = None,
 ) -> dict[str, str | int]:
-    config: dict[str, str | int] = {
-        "robotDescriptionTopic": robot_description_topic,
-        "jointStatesTopic": joint_states_topic,
-    }
+    config: dict[str, str | int] = {}
     if rosbridge_url:
         config["rosbridgeUrl"] = rosbridge_url
     if rosbridge_port not in (None, ""):
@@ -199,8 +194,6 @@ def make_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--web-root", type=Path, default=None)
     parser.add_argument("--rosbridge-url", default="")
     parser.add_argument("--rosbridge-port", default="")
-    parser.add_argument("--robot-description-topic", default="/robot_description")
-    parser.add_argument("--joint-states-topic", default="/joint_states")
     parser.add_argument("--asset-base-url", default="")
     parser.add_argument("--fixed-frame", default="")
     parser.add_argument("--cache-seconds", type=int, default=3600)
@@ -215,8 +208,6 @@ def main(argv: list[str] | None = None) -> int:
     viewer_config = build_viewer_config(
         rosbridge_url=args.rosbridge_url,
         rosbridge_port=args.rosbridge_port,
-        robot_description_topic=args.robot_description_topic,
-        joint_states_topic=args.joint_states_topic,
         asset_base_url=args.asset_base_url,
         fixed_frame=args.fixed_frame,
     )

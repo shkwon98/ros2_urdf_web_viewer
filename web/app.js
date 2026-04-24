@@ -11,6 +11,7 @@ const elements = {
   jointStatesTopic: document.querySelector("#joint-states-topic"),
   connectButton: document.querySelector("#connect-button"),
   disconnectButton: document.querySelector("#disconnect-button"),
+  refreshTopicsButton: document.querySelector("#refresh-topics-button"),
   reloadButton: document.querySelector("#reload-button"),
   fitButton: document.querySelector("#fit-button"),
   resetViewButton: document.querySelector("#reset-view-button"),
@@ -30,7 +31,14 @@ const state = {
   latestUrdfXml: "",
   jointUpdates: 0,
   pendingJointValues: null,
+  discoveredTopics: [],
 };
+
+const DESCRIPTION_TYPES = new Set(["std_msgs/String", "std_msgs/msg/String"]);
+const JOINT_STATE_TYPES = new Set([
+  "sensor_msgs/JointState",
+  "sensor_msgs/msg/JointState",
+]);
 
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
@@ -81,9 +89,6 @@ function defaultRosbridgeUrl() {
 
 function resetInputs() {
   elements.rosbridgeUrl.value = config.rosbridgeUrl || defaultRosbridgeUrl();
-  elements.robotDescriptionTopic.value =
-    config.robotDescriptionTopic || "/robot_description";
-  elements.jointStatesTopic.value = config.jointStatesTopic || "/joint_states";
   elements.fixedFrameLabel.textContent = `Frame: ${config.fixedFrame || "base"}`;
 }
 
@@ -95,6 +100,54 @@ function setStatus(element, text, className = "") {
 function setConnectedUi(connected) {
   elements.connectButton.disabled = connected;
   elements.disconnectButton.disabled = !connected;
+  elements.refreshTopicsButton.disabled = !connected;
+  elements.robotDescriptionTopic.disabled = !connected;
+  elements.jointStatesTopic.disabled = !connected;
+}
+
+function normalizeTopicType(type) {
+  return type.replace("/msg/", "/");
+}
+
+function setSelectOptions(select, topics, placeholder) {
+  const previousValue = select.value;
+  select.replaceChildren();
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = placeholder;
+  select.appendChild(placeholderOption);
+
+  topics.forEach(({ name, type }) => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = `${name} (${normalizeTopicType(type)})`;
+    select.appendChild(option);
+  });
+
+  const preferred = topics.find((topic) => topic.name === previousValue) || topics[0];
+  if (preferred) {
+    select.value = preferred.name;
+  }
+}
+
+function topicPairs(response) {
+  const topics = response.topics || [];
+  const types = response.types || [];
+  return topics
+    .map((name, index) => ({ name, type: types[index] || "" }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function chooseDescriptionTopics(topics) {
+  return topics.filter(
+    (topic) =>
+      DESCRIPTION_TYPES.has(topic.type) && topic.name.includes("robot_description"),
+  );
+}
+
+function chooseJointStateTopics(topics) {
+  return topics.filter((topic) => JOINT_STATE_TYPES.has(topic.type));
 }
 
 function resizeRenderer() {
@@ -213,6 +266,57 @@ function loadUrdfXml(urdfXml) {
   }
 }
 
+function refreshTopics() {
+  if (!state.ros) {
+    return;
+  }
+
+  setStatus(elements.urdfStatus, "discovering", "warn");
+  const topicsService = new ROSLIB.Service({
+    ros: state.ros,
+    name: "/rosapi/topics",
+    serviceType: "rosapi_msgs/Topics",
+  });
+
+  topicsService.callService(
+    new ROSLIB.ServiceRequest({}),
+    (response) => {
+      state.discoveredTopics = topicPairs(response);
+      const descriptionTopics = chooseDescriptionTopics(state.discoveredTopics);
+      const jointStateTopics = chooseJointStateTopics(state.discoveredTopics);
+
+      setSelectOptions(
+        elements.robotDescriptionTopic,
+        descriptionTopics,
+        "No robot_description topics found",
+      );
+      setSelectOptions(
+        elements.jointStatesTopic,
+        jointStateTopics,
+        "No joint state topics found",
+      );
+
+      if (descriptionTopics.length === 0) {
+        setStatus(elements.urdfStatus, "no description topic", "error");
+      } else {
+        setStatus(elements.urdfStatus, "topic selected", "warn");
+      }
+      setStatus(
+        elements.jointStatus,
+        jointStateTopics.length === 0 ? "no joint topics" : "topic selected",
+        jointStateTopics.length === 0 ? "error" : "warn",
+      );
+
+      subscribeTopics();
+    },
+    (error) => {
+      console.error(error);
+      setStatus(elements.urdfStatus, "rosapi error", "error");
+      setStatus(elements.jointStatus, "rosapi error", "error");
+    },
+  );
+}
+
 function handleJointState(message) {
   const values = {};
   const names = message.name || [];
@@ -248,20 +352,30 @@ function unsubscribeTopics() {
 
 function subscribeTopics() {
   unsubscribeTopics();
+  const descriptionTopicName = elements.robotDescriptionTopic.value;
+  const jointTopicName = elements.jointStatesTopic.value;
+
+  if (!descriptionTopicName) {
+    return;
+  }
+
   state.descriptionTopic = new ROSLIB.Topic({
     ros: state.ros,
-    name: elements.robotDescriptionTopic.value.trim(),
+    name: descriptionTopicName,
     messageType: "std_msgs/String",
-  });
-  state.jointTopic = new ROSLIB.Topic({
-    ros: state.ros,
-    name: elements.jointStatesTopic.value.trim(),
-    messageType: "sensor_msgs/JointState",
-    throttle_rate: 33,
   });
 
   state.descriptionTopic.subscribe((message) => loadUrdfXml(message.data));
-  state.jointTopic.subscribe(handleJointState);
+
+  if (jointTopicName) {
+    state.jointTopic = new ROSLIB.Topic({
+      ros: state.ros,
+      name: jointTopicName,
+      messageType: "sensor_msgs/JointState",
+      throttle_rate: 33,
+    });
+    state.jointTopic.subscribe(handleJointState);
+  }
 }
 
 function disconnectRos() {
@@ -286,7 +400,7 @@ function connectRos() {
 
   ros.on("connection", () => {
     setStatus(elements.rosStatus, "online", "online");
-    subscribeTopics();
+    refreshTopics();
   });
   ros.on("close", () => {
     setStatus(elements.rosStatus, "offline");
@@ -324,6 +438,9 @@ elements.gridToggle.addEventListener("change", () => {
 elements.collisionToggle.addEventListener("change", reloadRobot);
 elements.connectButton.addEventListener("click", connectRos);
 elements.disconnectButton.addEventListener("click", disconnectRos);
+elements.refreshTopicsButton.addEventListener("click", refreshTopics);
+elements.robotDescriptionTopic.addEventListener("change", subscribeTopics);
+elements.jointStatesTopic.addEventListener("change", subscribeTopics);
 elements.reloadButton.addEventListener("click", reloadRobot);
 elements.fitButton.addEventListener("click", fitRobot);
 elements.resetViewButton.addEventListener("click", resetView);

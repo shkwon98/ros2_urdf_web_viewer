@@ -30,35 +30,27 @@ http://localhost:8080
 The launch starts:
 
 - `rosbridge_websocket` on port `9090`
+- `rosapi_node` for topic discovery
 - the viewer and mesh asset server on port `8080`
 
 It does not publish `robot_description` itself. It subscribes through rosbridge
-to whichever ROS 2 topics are already present on the network.
+to whichever ROS 2 topics are selected in the browser. The topic selectors are
+populated from the current ROS graph through `rosapi_node`.
 
-For the RBY1 topic layout used elsewhere in this workspace:
+For the RBY1 topic layout used elsewhere in this workspace, open the viewer and
+select:
 
-```bash
-ros2 launch ros2_urdf_web_viewer viewer.launch.py \
-  robot_description_topic:=/control/body/robot_description \
-  joint_states_topic:=/sensors/proprio/body/joint_states \
-  fixed_frame:=base
-```
+- Description: `/control/body/robot_description`
+- Joint states: `/sensors/proprio/body/joint_states`
 
 ## Use An Existing Robot Pipeline
 
-For standard topic names:
-
-```bash
-ros2 launch ros2_urdf_web_viewer viewer.launch.py \
-  robot_description_topic:=/robot_description \
-  joint_states_topic:=/joint_states
-```
-
-If rosbridge is already running:
+If rosbridge and rosapi are already running:
 
 ```bash
 ros2 launch ros2_urdf_web_viewer viewer.launch.py \
   start_rosbridge:=false \
+  start_rosapi:=false \
   rosbridge_port:=9090
 ```
 
