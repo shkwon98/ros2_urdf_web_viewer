@@ -105,6 +105,23 @@ class TestStaticPackageAssets(unittest.TestCase):
         ]
         self.assertEqual(readme_order, sorted(readme_order))
 
+    def test_readme_is_generic_for_open_source_use(self):
+        readme = (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("## Features", readme)
+        self.assertIn("## Requirements", readme)
+        self.assertIn("## Topic Expectations", readme)
+        self.assertIn("## Launch Arguments", readme)
+        self.assertIn("## Troubleshooting", readme)
+        self.assertIn("## Development", readme)
+        self.assertNotIn("RBY1", readme)
+        self.assertNotIn("rby1", readme)
+        self.assertNotIn("wuji", readme)
+        self.assertNotIn("quest3", readme)
+        self.assertNotIn("dex_graft", readme)
+        self.assertNotIn("/home/", readme)
+        self.assertNotIn("this workspace", readme)
+
     def test_viewer_launch_does_not_publish_robot_description(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
             encoding="utf-8"

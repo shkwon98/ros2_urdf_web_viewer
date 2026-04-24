@@ -11,7 +11,7 @@ from ros2_urdf_web_viewer.run_server import (
 class TestRunServerHelpers(unittest.TestCase):
     def test_safe_resource_path_rejects_directory_traversal(self):
         with TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir) / "share" / "rby1_description"
+            root = Path(temp_dir) / "share" / "example_robot_description"
             root.mkdir(parents=True)
 
             with self.assertRaisesRegex(ValueError, "outside package"):
@@ -19,7 +19,7 @@ class TestRunServerHelpers(unittest.TestCase):
 
     def test_safe_resource_path_accepts_nested_files(self):
         with TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir) / "share" / "rby1_description"
+            root = Path(temp_dir) / "share" / "example_robot_description"
             mesh = root / "meshes" / "link.stl"
             mesh.parent.mkdir(parents=True)
             mesh.write_text("solid link\nendsolid link\n", encoding="utf-8")
@@ -28,18 +28,18 @@ class TestRunServerHelpers(unittest.TestCase):
 
     def test_safe_resource_path_accepts_symlink_install_resources(self):
         with TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir) / "install" / "share" / "wuji_hand_description"
-            source = Path(temp_dir) / "src" / "wuji_hand_description"
-            root_mesh_dir = root / "meshes" / "left"
-            source_mesh = source / "meshes" / "left" / "left_palm_link.STL"
+            root = Path(temp_dir) / "install" / "share" / "example_robot_description"
+            source = Path(temp_dir) / "src" / "example_robot_description"
+            root_mesh_dir = root / "meshes"
+            source_mesh = source / "meshes" / "link_mesh.STL"
             root_mesh_dir.mkdir(parents=True)
             source_mesh.parent.mkdir(parents=True)
-            source_mesh.write_text("solid palm\nendsolid palm\n", encoding="utf-8")
-            installed_mesh = root_mesh_dir / "left_palm_link.STL"
+            source_mesh.write_text("solid link\nendsolid link\n", encoding="utf-8")
+            installed_mesh = root_mesh_dir / "link_mesh.STL"
             installed_mesh.symlink_to(source_mesh)
 
             self.assertEqual(
-                safe_resource_path(root, "meshes/left/left_palm_link.STL"),
+                safe_resource_path(root, "meshes/link_mesh.STL"),
                 installed_mesh,
             )
 
