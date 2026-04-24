@@ -1,23 +1,17 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import AnyLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-    rosbridge_port = LaunchConfiguration("rosbridge_port")
     web_host = LaunchConfiguration("web_host")
     web_port = LaunchConfiguration("web_port")
+    rosbridge_port = LaunchConfiguration("rosbridge_port")
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "rosbridge_port",
-                default_value="9090",
-                description="rosbridge websocket port.",
-            ),
             DeclareLaunchArgument(
                 "web_host",
                 default_value="0.0.0.0",
@@ -28,17 +22,19 @@ def generate_launch_description():
                 default_value="8080",
                 description="HTTP port for the viewer and package asset server.",
             ),
-            IncludeLaunchDescription(
-                AnyLaunchDescriptionSource(
-                    PathJoinSubstitution(
-                        [
-                            FindPackageShare("rosbridge_server"),
-                            "launch",
-                            "rosbridge_websocket_launch.xml",
-                        ]
-                    )
-                ),
-                launch_arguments={"port": rosbridge_port}.items(),
+            DeclareLaunchArgument(
+                "rosbridge_port",
+                default_value="9090",
+                description="rosbridge websocket port.",
+            ),
+            Node(
+                package="rosbridge_server",
+                executable="rosbridge_websocket",
+                name="rosbridge_websocket",
+                output="screen",
+                parameters=[
+                    {"port": ParameterValue(rosbridge_port, value_type=int)}
+                ],
             ),
             Node(
                 package="rosapi",

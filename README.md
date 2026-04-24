@@ -29,9 +29,9 @@ http://localhost:8080
 
 The launch starts:
 
-- `rosbridge_websocket` on port `9090`
+- the viewer and mesh asset server on `web_host` / `web_port` (`0.0.0.0:8080`)
+- `rosbridge_websocket` on `rosbridge_port` (`9090`)
 - `rosapi_node` for topic discovery
-- the viewer and mesh asset server on port `8080`
 
 The browser websocket field defaults to the launched rosbridge endpoint,
 derived from the page host and `rosbridge_port`. You can edit that URL in the

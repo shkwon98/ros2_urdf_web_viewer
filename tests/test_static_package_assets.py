@@ -59,7 +59,12 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("start_rosapi", launch_file)
         self.assertNotIn("start_rosbridge", launch_file)
         self.assertNotIn("IfCondition", launch_file)
-        self.assertIn("rosbridge_websocket_launch.xml", launch_file)
+        self.assertNotIn("IncludeLaunchDescription", launch_file)
+        self.assertNotIn("rosbridge_websocket_launch.xml", launch_file)
+        self.assertNotIn("FindPackageShare", launch_file)
+        self.assertIn('package="rosbridge_server"', launch_file)
+        self.assertIn('executable="rosbridge_websocket"', launch_file)
+        self.assertIn("ParameterValue(rosbridge_port, value_type=int)", launch_file)
         self.assertIn('package="rosapi"', launch_file)
         self.assertIn('executable="rosapi_node"', launch_file)
         self.assertNotIn("rosbridge_url", launch_file)
@@ -72,6 +77,33 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("joint_states_topic", launch_file)
         self.assertIn("rosbridge_port", launch_file)
         self.assertIn("ros2_urdf_web_viewer_server", launch_file)
+
+    def test_launch_arguments_are_documented_web_host_web_port_rosbridge_port(self):
+        launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
+            encoding="utf-8"
+        )
+        readme = (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
+
+        launch_config_order = [
+            launch_file.index('LaunchConfiguration("web_host")'),
+            launch_file.index('LaunchConfiguration("web_port")'),
+            launch_file.index('LaunchConfiguration("rosbridge_port")'),
+        ]
+        self.assertEqual(launch_config_order, sorted(launch_config_order))
+
+        launch_argument_order = [
+            launch_file.index('                "web_host",'),
+            launch_file.index('                "web_port",'),
+            launch_file.index('                "rosbridge_port",'),
+        ]
+        self.assertEqual(launch_argument_order, sorted(launch_argument_order))
+
+        readme_order = [
+            readme.index("`web_host`"),
+            readme.index("`web_port`"),
+            readme.index("`rosbridge_port`"),
+        ]
+        self.assertEqual(readme_order, sorted(readme_order))
 
     def test_viewer_launch_does_not_publish_robot_description(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(

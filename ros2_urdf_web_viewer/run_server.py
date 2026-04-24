@@ -185,8 +185,8 @@ def make_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
-    parser.add_argument("--web-root", type=Path, default=None)
     parser.add_argument("--rosbridge-port", default="")
+    parser.add_argument("--web-root", type=Path, default=None)
     parser.add_argument("--cache-seconds", type=int, default=3600)
     return parser
 
