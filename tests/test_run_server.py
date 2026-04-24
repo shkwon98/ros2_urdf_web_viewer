@@ -2,24 +2,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from ros2_urdf_web_viewer.asset_server import (
+from ros2_urdf_web_viewer.run_server import (
     build_viewer_config,
-    package_resource_url,
     safe_resource_path,
 )
 
 
-class TestAssetServerHelpers(unittest.TestCase):
-    def test_package_resource_url_encodes_package_and_relative_path(self):
-        self.assertEqual(
-            package_resource_url(
-                "rby1_description",
-                "meshes/upper body/link 1.STL",
-                "http://localhost:8080",
-            ),
-            "http://localhost:8080/packages/rby1_description/meshes/upper%20body/link%201.STL",
-        )
-
+class TestRunServerHelpers(unittest.TestCase):
     def test_safe_resource_path_rejects_directory_traversal(self):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir) / "share" / "rby1_description"
@@ -56,14 +45,17 @@ class TestAssetServerHelpers(unittest.TestCase):
 
     def test_build_viewer_config_omits_empty_optional_values(self):
         config = build_viewer_config(
-            rosbridge_url="",
-            asset_base_url="",
-            fixed_frame="base_link",
+            rosbridge_port="",
         )
 
-        self.assertEqual(
-            config,
-            {
-                "fixedFrame": "base_link",
-            },
+        self.assertEqual(config, {})
+
+    def test_build_viewer_config_exposes_rosbridge_port_only(self):
+        config = build_viewer_config(
+            rosbridge_port="9090",
         )
+
+        self.assertEqual(config, {"rosbridgePort": 9090})
+        self.assertNotIn("rosbridgeUrl", config)
+        self.assertNotIn("assetBaseUrl", config)
+        self.assertNotIn("fixedFrame", config)

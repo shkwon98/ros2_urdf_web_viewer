@@ -45,7 +45,7 @@ setup(
     extras_require={"test": ["pytest"]},
     entry_points={
         "console_scripts": [
-            "ros2_urdf_web_viewer_server = ros2_urdf_web_viewer.asset_server:main",
+            "ros2_urdf_web_viewer_server = ros2_urdf_web_viewer.run_server:main",
         ],
     },
 )

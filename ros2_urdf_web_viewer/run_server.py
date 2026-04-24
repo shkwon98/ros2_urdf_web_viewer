@@ -7,30 +7,21 @@ import posixpath
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import unquote, urlparse
 
 try:
     from ament_index_python.packages import (
         PackageNotFoundError,
         get_package_share_directory,
     )
-except ImportError:  # pragma: no cover - useful when running unit tests outside ROS.
+except (
+    ImportError
+):  # pragma: no cover - useful when running unit tests outside ROS.
     PackageNotFoundError = KeyError
     get_package_share_directory = None
 
 
 PACKAGE_NAME = "ros2_urdf_web_viewer"
-
-
-def package_resource_url(
-    package_name: str,
-    relative_path: str,
-    asset_base_url: str,
-) -> str:
-    base_url = asset_base_url.rstrip("/")
-    package_part = quote(package_name.strip("/"), safe="")
-    path_part = quote(relative_path.strip("/"), safe="/")
-    return f"{base_url}/packages/{package_part}/{path_part}"
 
 
 def safe_resource_path(package_root: Path, relative_path: str) -> Path:
@@ -46,33 +37,28 @@ def safe_resource_path(package_root: Path, relative_path: str) -> Path:
             or normalized_path == ".."
             or normalized_path.startswith("../")
         ):
-            raise ValueError(f"requested resource is outside package: {relative_path}")
+            raise ValueError(
+                f"requested resource is outside package: {relative_path}"
+            )
         candidate = root / normalized_path
 
     try:
         candidate.relative_to(root)
     except ValueError:
-        raise ValueError(f"requested resource is outside package: {relative_path}")
+        raise ValueError(
+            f"requested resource is outside package: {relative_path}"
+        )
 
     return candidate
 
 
 def build_viewer_config(
     *,
-    rosbridge_url: str,
-    asset_base_url: str,
-    fixed_frame: str,
     rosbridge_port: str | int | None = None,
 ) -> dict[str, str | int]:
     config: dict[str, str | int] = {}
-    if rosbridge_url:
-        config["rosbridgeUrl"] = rosbridge_url
     if rosbridge_port not in (None, ""):
         config["rosbridgePort"] = int(rosbridge_port)
-    if asset_base_url:
-        config["assetBaseUrl"] = asset_base_url.rstrip("/")
-    if fixed_frame:
-        config["fixedFrame"] = fixed_frame
     return config
 
 
@@ -134,7 +120,9 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
 
     def _viewer_config_body(self) -> bytes:
         config_json = json.dumps(self.viewer_config, sort_keys=True)
-        return f"window.ROS_URDF_VIEWER_CONFIG = {config_json};\n".encode("utf-8")
+        return f"window.ROS_URDF_VIEWER_CONFIG = {config_json};\n".encode(
+            "utf-8"
+        )
 
     def _send_viewer_config(self):
         body = self._viewer_config_body()
@@ -175,11 +163,15 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
             self.send_error(404, "package resource not found")
             return
 
-        content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+        content_type = (
+            mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+        )
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(target.stat().st_size))
-        self.send_header("Cache-Control", f"public, max-age={max(0, self.cache_seconds)}")
+        self.send_header(
+            "Cache-Control", f"public, max-age={max(0, self.cache_seconds)}"
+        )
         self.end_headers()
 
         if not head_only:
@@ -188,14 +180,13 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
 
 
 def make_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Serve the ROS 2 URDF web viewer.")
+    parser = argparse.ArgumentParser(
+        description="Serve the ROS 2 URDF web viewer."
+    )
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--web-root", type=Path, default=None)
-    parser.add_argument("--rosbridge-url", default="")
     parser.add_argument("--rosbridge-port", default="")
-    parser.add_argument("--asset-base-url", default="")
-    parser.add_argument("--fixed-frame", default="")
     parser.add_argument("--cache-seconds", type=int, default=3600)
     return parser
 
@@ -206,10 +197,7 @@ def main(argv: list[str] | None = None) -> int:
 
     web_root = args.web_root or default_web_root()
     viewer_config = build_viewer_config(
-        rosbridge_url=args.rosbridge_url,
         rosbridge_port=args.rosbridge_port,
-        asset_base_url=args.asset_base_url,
-        fixed_frame=args.fixed_frame,
     )
     handler = partial(
         ViewerRequestHandler,
@@ -220,7 +208,10 @@ def main(argv: list[str] | None = None) -> int:
 
     with ThreadingHTTPServer((args.host, args.port), handler) as server:
         url_host = "localhost" if args.host in {"", "0.0.0.0"} else args.host
-        print(f"Serving ROS 2 URDF viewer at http://{url_host}:{args.port}", flush=True)
+        print(
+            f"Serving ROS 2 URDF viewer at http://{url_host}:{args.port}",
+            flush=True,
+        )
         server.serve_forever()
 
     return 0

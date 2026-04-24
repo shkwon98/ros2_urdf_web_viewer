@@ -25,15 +25,20 @@
           <span class="brand-mark" aria-hidden="true"></span>
           <div>
             <h1>ROS 2 URDF Web Viewer</h1>
-            <p id="fixed-frame-label">Frame: base</p>
           </div>
         </header>
 
         <section class="rail-section">
-          <div class="section-heading">Connection</div>
+          <div class="section-heading">ROS 2 Connection</div>
           <label>
-            WebSocket
-            <input id="rosbridge-url" type="text" autocomplete="off" />
+            Rosbridge URL
+            <input
+              id="rosbridge-url"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="ws://localhost:9090"
+            />
           </label>
           <div class="button-row">
             <button id="connect-button" class="primary" type="button">

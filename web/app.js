@@ -19,7 +19,6 @@ const elements = {
   rosStatus: document.querySelector("#ros-status"),
   urdfStatus: document.querySelector("#urdf-status"),
   jointStatus: document.querySelector("#joint-status"),
-  fixedFrameLabel: document.querySelector("#fixed-frame-label"),
 };
 
 const state = {
@@ -85,15 +84,14 @@ scene.add(grid);
 const axes = new THREE.AxesHelper(0.6);
 scene.add(axes);
 
-function defaultRosbridgeUrl() {
+function rosbridgeEndpoint() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const port = config.rosbridgePort || 9090;
   return `${protocol}//${window.location.hostname}:${port}`;
 }
 
-function resetInputs() {
-  elements.rosbridgeUrl.value = config.rosbridgeUrl || defaultRosbridgeUrl();
-  elements.fixedFrameLabel.textContent = `Frame: ${config.fixedFrame || "base"}`;
+function resetConnectionDefaults() {
+  elements.rosbridgeUrl.value = rosbridgeEndpoint();
 }
 
 function setStatus(element, text, className = "") {
@@ -104,6 +102,7 @@ function setStatus(element, text, className = "") {
 function setConnectedUi(connected) {
   elements.connectButton.disabled = connected;
   elements.disconnectButton.disabled = !connected;
+  elements.rosbridgeUrl.disabled = connected;
   elements.robotDescriptionTopic.disabled = !connected;
   elements.jointStatesTopic.disabled = !connected;
 }
@@ -201,8 +200,8 @@ function fitRobot() {
 }
 
 function packageBaseUrl(packageName) {
-  const assetBaseUrl = (config.assetBaseUrl || window.location.origin).replace(/\/$/, "");
-  return `${assetBaseUrl}/packages/${encodeURIComponent(packageName)}`;
+  const origin = window.location.origin.replace(/\/$/, "");
+  return `${origin}/packages/${encodeURIComponent(packageName)}`;
 }
 
 function clearRobot() {
@@ -438,7 +437,7 @@ function disconnectRos() {
 function connectRos() {
   disconnectRos();
 
-  const url = elements.rosbridgeUrl.value.trim() || defaultRosbridgeUrl();
+  const url = elements.rosbridgeUrl.value.trim() || rosbridgeEndpoint();
   const ros = new ROSLIB.Ros({ url });
   state.ros = ros;
 
@@ -475,7 +474,7 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-resetInputs();
+resetConnectionDefaults();
 resetView();
 setConnectedUi(false);
 setStatus(elements.rosStatus, "offline");

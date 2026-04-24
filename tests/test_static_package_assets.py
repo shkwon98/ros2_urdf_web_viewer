@@ -16,8 +16,13 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)
         self.assertIn("viewer-config.js", index_html)
+        self.assertIn("ROS 2 Connection", index_html)
+        self.assertIn('id="rosbridge-url"', index_html)
+        self.assertIn('placeholder="ws://localhost:9090"', index_html)
         self.assertIn('<select id="robot-description-topic"', index_html)
         self.assertIn('<select id="joint-states-topic"', index_html)
+        self.assertNotIn('id="fixed-frame-label"', index_html)
+        self.assertNotIn("Frame:", index_html)
         self.assertNotIn('id="refresh-topics-button"', index_html)
         self.assertNotIn("Refresh topics", index_html)
         self.assertNotIn('id="robot-description-topic" type="text"', index_html)
@@ -26,20 +31,36 @@ class TestStaticPackageAssets(unittest.TestCase):
     def test_topic_discovery_refreshes_automatically(self):
         app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
 
+        self.assertIn("rosbridgeEndpoint", app_js)
         self.assertIn("TOPIC_REFRESH_INTERVAL_MS", app_js)
         self.assertIn("startTopicDiscovery", app_js)
         self.assertIn("stopTopicDiscovery", app_js)
         self.assertIn("setInterval", app_js)
+        self.assertIn("rosbridgeUrl", app_js)
+        self.assertIn("rosbridgeEndpoint()", app_js)
+        self.assertIn("elements.rosbridgeUrl.value.trim()", app_js)
+        self.assertNotIn("assetBaseUrl", app_js)
+        self.assertNotIn("fixedFrame", app_js)
+        self.assertNotIn("fixedFrameLabel", app_js)
         self.assertNotIn("refreshTopicsButton", app_js)
 
-    def test_launch_file_exposes_ros_topics_and_ports(self):
+    def test_launch_file_starts_rosbridge_and_rosapi_unconditionally(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
             encoding="utf-8"
         )
 
-        self.assertIn("start_rosapi", launch_file)
+        self.assertNotIn("start_rosapi", launch_file)
+        self.assertNotIn("start_rosbridge", launch_file)
+        self.assertNotIn("IfCondition", launch_file)
+        self.assertIn("rosbridge_websocket_launch.xml", launch_file)
         self.assertIn('package="rosapi"', launch_file)
         self.assertIn('executable="rosapi_node"', launch_file)
+        self.assertNotIn("rosbridge_url", launch_file)
+        self.assertNotIn("--rosbridge-url", launch_file)
+        self.assertNotIn("asset_base_url", launch_file)
+        self.assertNotIn("--asset-base-url", launch_file)
+        self.assertNotIn("fixed_frame", launch_file)
+        self.assertNotIn("--fixed-frame", launch_file)
         self.assertNotIn("robot_description_topic", launch_file)
         self.assertNotIn("joint_states_topic", launch_file)
         self.assertIn("rosbridge_port", launch_file)
@@ -59,3 +80,9 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("ros2_urdf_web_viewer_example", package_xml)
         self.assertNotIn("<exec_depend>robot_state_publisher</exec_depend>", package_xml)
         self.assertNotIn("<exec_depend>xacro</exec_depend>", package_xml)
+
+    def test_console_entrypoint_uses_run_server_module(self):
+        setup_py = (PACKAGE_ROOT / "setup.py").read_text(encoding="utf-8")
+
+        self.assertIn("ros2_urdf_web_viewer.run_server:main", setup_py)
+        self.assertNotIn("ros2_urdf_web_viewer.asset_server:main", setup_py)
