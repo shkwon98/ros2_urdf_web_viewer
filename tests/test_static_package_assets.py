@@ -11,6 +11,7 @@ class TestStaticPackageAssets(unittest.TestCase):
             encoding="utf-8"
         )
 
+        self.assertIn("ROS 2 URDF Web Viewer", index_html)
         self.assertIn("roslib.min.js", index_html)
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)

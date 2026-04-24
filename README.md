@@ -78,3 +78,7 @@ http://localhost:8080/packages/rby1_description/meshes/rby1a/base.dae
 
 The package asset server resolves package share directories through
 `ament_index_python`, so build and source the workspace before launching.
+
+## License
+
+MIT

@@ -13,7 +13,11 @@ def package_files(source_dir: Path, install_dir: str):
 
     packaged = []
     for path in sorted(source_dir.rglob("*")):
-        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc":
+        if (
+            path.is_file()
+            and "__pycache__" not in path.parts
+            and path.suffix != ".pyc"
+        ):
             destination = Path(install_dir) / path.parent.relative_to(source_dir)
             packaged.append((str(destination), [str(path.relative_to(project_root))]))
     return packaged
@@ -28,7 +32,7 @@ setup(
             "share/ament_index/resource_index/packages",
             [f"resource/{package_name}"],
         ),
-        (f"share/{package_name}", ["package.xml"]),
+        (f"share/{package_name}", ["package.xml", "LICENSE"]),
         *package_files(project_root / "launch", f"share/{package_name}/launch"),
         *package_files(project_root / "web", f"share/{package_name}/web"),
     ],
@@ -36,7 +40,7 @@ setup(
     zip_safe=True,
     maintainer="shkwon98",
     maintainer_email="shkwon98@snu.ac.kr",
-    description="Example ROS 2 WebSocket URDF viewer.",
+    description="Browser-based ROS 2 URDF web viewer.",
     license="MIT",
     extras_require={"test": ["pytest"]},
     entry_points={
