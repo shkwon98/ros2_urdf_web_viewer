@@ -16,11 +16,21 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)
         self.assertIn("viewer-config.js", index_html)
-        self.assertIn('id="refresh-topics-button"', index_html)
         self.assertIn('<select id="robot-description-topic"', index_html)
         self.assertIn('<select id="joint-states-topic"', index_html)
+        self.assertNotIn('id="refresh-topics-button"', index_html)
+        self.assertNotIn("Refresh topics", index_html)
         self.assertNotIn('id="robot-description-topic" type="text"', index_html)
         self.assertNotIn('id="joint-states-topic" type="text"', index_html)
+
+    def test_topic_discovery_refreshes_automatically(self):
+        app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn("TOPIC_REFRESH_INTERVAL_MS", app_js)
+        self.assertIn("startTopicDiscovery", app_js)
+        self.assertIn("stopTopicDiscovery", app_js)
+        self.assertIn("setInterval", app_js)
+        self.assertNotIn("refreshTopicsButton", app_js)
 
     def test_launch_file_exposes_ros_topics_and_ports(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(

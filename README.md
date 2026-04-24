@@ -35,7 +35,8 @@ The launch starts:
 
 It does not publish `robot_description` itself. It subscribes through rosbridge
 to whichever ROS 2 topics are selected in the browser. The topic selectors are
-populated from the current ROS graph through `rosapi_node`.
+automatically populated and refreshed from the current ROS graph through
+`rosapi_node`.
 
 For the RBY1 topic layout used elsewhere in this workspace, open the viewer and
 select:
