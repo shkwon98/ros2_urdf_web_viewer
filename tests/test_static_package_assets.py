@@ -17,6 +17,10 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)
         self.assertIn("viewer-config.js", index_html)
+        self.assertIn('rel="icon"', index_html)
+        self.assertIn('href="./favicon.svg"', index_html)
+        self.assertIn('class="brand-mark"', index_html)
+        self.assertNotIn('src="./favicon.svg"', index_html)
         self.assertIn("ROS 2 Connection", index_html)
         self.assertIn('id="rosbridge-url"', index_html)
         self.assertIn('placeholder="ws://localhost:9090"', index_html)
@@ -34,6 +38,19 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("Refresh topics", index_html)
         self.assertNotIn('id="robot-description-topic" type="text"', index_html)
         self.assertNotIn('id="joint-states-topic" type="text"', index_html)
+
+    def test_favicon_asset_is_available(self):
+        favicon_svg = (PACKAGE_ROOT / "web" / "favicon.svg").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("<svg", favicon_svg)
+        self.assertIn('viewBox="0 0 64 64"', favicon_svg)
+        self.assertIn("#272421", favicon_svg)
+        self.assertIn("#c77b1b", favicon_svg)
+        self.assertIn("#1f7a54", favicon_svg)
+        self.assertNotIn('id="viewport"', favicon_svg)
+        self.assertNotIn('id="robot-arm"', favicon_svg)
 
     def test_topic_discovery_refreshes_automatically(self):
         app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
