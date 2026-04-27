@@ -13,7 +13,6 @@ const elements = {
   partList: document.querySelector("#part-list"),
   mountList: document.querySelector("#mount-list"),
   railResizer: document.querySelector("#rail-resizer"),
-  configJson: document.querySelector("#config-json"),
   connectButton: document.querySelector("#connect-button"),
   disconnectButton: document.querySelector("#disconnect-button"),
   reloadButton: document.querySelector("#reload-button"),
@@ -57,6 +56,14 @@ const ROBOT_DESCRIPTION_FALLBACK_DELAY_MS = 900;
 const RAIL_DEFAULT_WIDTH = 420;
 const RAIL_MIN_WIDTH = 300;
 const RAIL_MAX_WIDTH = 760;
+const MOUNT_OFFSET_FIELDS = [
+  ["x", "xyz", 0, false],
+  ["y", "xyz", 1, false],
+  ["z", "xyz", 2, false],
+  ["roll", "rpy", 0, true],
+  ["pitch", "rpy", 1, true],
+  ["yaw", "rpy", 2, true],
+];
 
 const state = {
   ros: null,
@@ -154,7 +161,27 @@ function cloneStringArray(values = []) {
 }
 
 function cloneAssemblyConfig(assemblyConfig) {
-  const parts = (assemblyConfig.parts || []).map((part) => ({
+  if (!assemblyConfig || !Array.isArray(assemblyConfig.parts)) {
+    throw new Error("Configuration must contain a parts array.");
+  }
+
+  const partIds = new Set();
+  assemblyConfig.parts.forEach((part) => {
+    if (!part.id || partIds.has(part.id)) {
+      throw new Error("Each part must have a unique id.");
+    }
+    partIds.add(part.id);
+  });
+
+  assemblyConfig.parts.forEach((part) => {
+    (part.mounts || []).forEach((mount) => {
+      if (!partIds.has(mount.childPartId)) {
+        throw new Error("Mount child part ids must reference existing parts.");
+      }
+    });
+  });
+
+  const parts = assemblyConfig.parts.map((part) => ({
     id: part.id,
     robotName: part.robotName || "",
     mountLink: part.mountLink || "",
@@ -182,7 +209,7 @@ function normalizeAssemblyPresets(rawPresets) {
 
   const normalized = {};
   Object.entries(rawPresets).forEach(([id, preset]) => {
-    if (!preset || !Array.isArray(preset.parts)) {
+    if (!preset) {
       return;
     }
     normalized[id] = {
@@ -472,8 +499,6 @@ function createPartRuntime(partConfig) {
     latestUrdfXml: "",
     pendingJointValues: null,
     jointUpdates: 0,
-    urdfStatus: "waiting",
-    jointStatus: "0 updates",
   };
 }
 
@@ -500,7 +525,6 @@ function clearPartRobot(part) {
   disposeRobot(part.robot);
   part.robot = null;
   part.pendingJointValues = null;
-  part.urdfStatus = "waiting";
 }
 
 function clearRobotDescriptionFallback(part) {
@@ -584,7 +608,6 @@ function renderPartControls() {
     descriptionSelect.addEventListener("change", () => {
       part.descriptionTopicName = descriptionSelect.value;
       subscribePartTopics(part);
-      updateCurrentConfigText();
     });
 
     const jointSelect = createElement("select", "part-topic-select part-joint-topic");
@@ -592,7 +615,6 @@ function renderPartControls() {
     jointSelect.addEventListener("change", () => {
       part.jointStateTopicName = jointSelect.value;
       subscribePartTopics(part);
-      updateCurrentConfigText();
     });
 
     card.append(
@@ -620,14 +642,7 @@ function renderMountControls() {
     card.appendChild(createElement("div", "card-heading", mount.id));
 
     const mountGrid = createElement("div", "mount-grid");
-    [
-      ["x", "xyz", 0, false],
-      ["y", "xyz", 1, false],
-      ["z", "xyz", 2, false],
-      ["roll", "rpy", 0, true],
-      ["pitch", "rpy", 1, true],
-      ["yaw", "rpy", 2, true],
-    ].forEach(([labelText, key, index, degrees]) => {
+    MOUNT_OFFSET_FIELDS.forEach(([labelText, key, index, degrees]) => {
       const input = document.createElement("input");
       input.className = "offset-input";
       input.type = "number";
@@ -649,20 +664,17 @@ function renderMountControls() {
         mount.origin[key][index] = degreesToStoredValue(value, degrees);
         slider.value = `${value}`;
         updateMountTransforms();
-        updateCurrentConfigText();
       });
       input.addEventListener("blur", () => {
         const value = normalizeOffsetInput(input, slider, degrees);
         mount.origin[key][index] = degreesToStoredValue(value, degrees);
         updateMountTransforms();
-        updateCurrentConfigText();
       });
       slider.addEventListener("input", () => {
         const value = Number.parseFloat(slider.value);
         mount.origin[key][index] = degreesToStoredValue(value, degrees);
         input.value = formatOffsetValue(mount.origin[key][index], degrees);
         updateMountTransforms();
-        updateCurrentConfigText();
       });
 
       const label = document.createElement("label");
@@ -678,7 +690,6 @@ function renderMountControls() {
       mount.origin = cloneOrigin(mount.initialOrigin);
       renderMountControls();
       updateMountTransforms();
-      updateCurrentConfigText();
     });
 
     const status = createElement("dd", "mount-status", "waiting");
@@ -751,8 +762,6 @@ function populateTopicSelects() {
   }
 }
 
-function updatePartStatuses() {}
-
 function updateGlobalStatuses() {
   const parts = Array.from(state.parts.values());
   const loadedCount = parts.filter((part) => part.robot).length;
@@ -777,42 +786,8 @@ function updateGlobalStatuses() {
   );
 }
 
-function updateCurrentConfigText() {
-  elements.configJson.value = JSON.stringify(assemblyConfigSnapshot(), null, 2);
-}
-
-function validateAssemblyConfig(rawConfig) {
-  if (!rawConfig || !Array.isArray(rawConfig.parts)) {
-    throw new Error("Configuration must contain a parts array.");
-  }
-
-  const partIds = new Set();
-  rawConfig.parts.forEach((part) => {
-    if (!part.id || partIds.has(part.id)) {
-      throw new Error("Each part must have a unique id.");
-    }
-    partIds.add(part.id);
-  });
-
-  rawConfig.parts.forEach((part) => {
-    (part.mounts || []).forEach((mount) => {
-      if (!partIds.has(mount.childPartId)) {
-        throw new Error("Mount child part ids must reference existing parts.");
-      }
-    });
-  });
-
-  (rawConfig.mounts || []).forEach((mount) => {
-    if (!partIds.has(mount.parentPartId) || !partIds.has(mount.childPartId)) {
-      throw new Error("Mount part ids must reference existing parts.");
-    }
-  });
-
-  return cloneAssemblyConfig(rawConfig);
-}
-
 function applyAssemblyConfig(nextConfig) {
-  const normalizedConfig = validateAssemblyConfig(nextConfig);
+  const normalizedConfig = cloneAssemblyConfig(nextConfig);
   unsubscribeTopics();
   clearAllRobots();
   state.parts = new Map();
@@ -824,30 +799,12 @@ function applyAssemblyConfig(nextConfig) {
   renderPartControls();
   renderMountControls();
   populateTopicSelects();
-  updateCurrentConfigText();
   updateGlobalStatuses();
   setConnectedUi(Boolean(state.ros));
 
   if (state.ros) {
     subscribeTopics();
   }
-}
-
-function assemblyConfigSnapshot() {
-  return {
-    parts: Array.from(state.parts.values()).map((part) => ({
-      id: part.id,
-      robotName: part.robotName,
-      mountLink: part.mountLink,
-      descriptionTopic: part.descriptionTopicName,
-      jointStateTopic: part.jointStateTopicName,
-      hiddenLinks: cloneStringArray(part.hiddenLinks),
-      topicCandidates: cloneTopicCandidates(part.topicCandidates),
-      mounts: state.mounts
-        .filter((mount) => mount.parentPartId === part.id)
-        .map(cloneNestedMountConfig),
-    })),
-  };
 }
 
 function applySelectedPreset() {
@@ -998,8 +955,7 @@ function loadUrdfXmlForPart(part, urdfXml) {
 
   const robotName = robotNameFromUrdfXml(urdfXml);
   if (!robotNameMatches(part, robotName)) {
-    part.urdfStatus = "robot name mismatch";
-    updatePartStatuses(part);
+    setStatus(elements.urdfStatus, "robot name mismatch", "error");
     updateGlobalStatuses();
     return;
   }
@@ -1012,8 +968,6 @@ function loadUrdfXmlForPart(part, urdfXml) {
   part.paramLookupInFlight = false;
   part.latestUrdfXml = urdfXml;
   clearPartRobot(part);
-  part.urdfStatus = "loading";
-  updatePartStatuses(part);
   updateGlobalStatuses();
 
   const manager = new THREE.LoadingManager();
@@ -1024,16 +978,13 @@ function loadUrdfXmlForPart(part, urdfXml) {
 
   manager.onLoad = () => {
     fitRobot();
-    part.urdfStatus = `${Object.keys(part.robot?.links || {}).length} links`;
-    updatePartStatuses(part);
     renderMountControls();
     updateMountTransforms();
     updateGlobalStatuses();
   };
   manager.onError = (url) => {
     console.error(`Mesh load failed: ${url}`);
-    part.urdfStatus = "mesh error";
-    updatePartStatuses(part);
+    setStatus(elements.urdfStatus, "mesh error", "error");
     updateGlobalStatuses();
   };
 
@@ -1052,8 +1003,7 @@ function loadUrdfXmlForPart(part, urdfXml) {
     fitRobot();
   } catch (error) {
     console.error(error);
-    part.urdfStatus = "parse error";
-    updatePartStatuses(part);
+    setStatus(elements.urdfStatus, "parse error", "error");
     updateGlobalStatuses();
   }
 }
@@ -1075,11 +1025,7 @@ function parseRosapiStringValue(response) {
 function tryLoadRobotDescriptionParam(part, publishers, index = 0) {
   if (publishers.length === 0) {
     part.paramLookupInFlight = false;
-    if (!part.robot && part.descriptionTopicName) {
-      part.urdfStatus = "no param publishers";
-      updatePartStatuses(part);
-      updateGlobalStatuses();
-    }
+    updateGlobalStatuses();
     return;
   }
 
@@ -1090,11 +1036,7 @@ function tryLoadRobotDescriptionParam(part, publishers, index = 0) {
     index >= publishers.length
   ) {
     part.paramLookupInFlight = false;
-    if (!part.robot && part.descriptionTopicName) {
-      part.urdfStatus = "param unavailable";
-      updatePartStatuses(part);
-      updateGlobalStatuses();
-    }
+    updateGlobalStatuses();
     return;
   }
 
@@ -1133,8 +1075,6 @@ function loadRobotDescriptionFromRosapiParams(part) {
   }
 
   part.paramLookupInFlight = true;
-  part.urdfStatus = "loading from param";
-  updatePartStatuses(part);
   updateGlobalStatuses();
 
   const requestRos = state.ros;
@@ -1158,11 +1098,7 @@ function loadRobotDescriptionFromRosapiParams(part) {
     (error) => {
       console.error(`robot_description publisher lookup failed for ${descriptionTopicName}`, error);
       part.paramLookupInFlight = false;
-      if (!part.robot) {
-        part.urdfStatus = "waiting for message";
-        updatePartStatuses(part);
-        updateGlobalStatuses();
-      }
+      updateGlobalStatuses();
     },
   );
 }
@@ -1173,8 +1109,6 @@ function scheduleRobotDescriptionFallback(part) {
     return;
   }
 
-  part.urdfStatus = "param lookup queued";
-  updatePartStatuses(part);
   updateGlobalStatuses();
   part.descriptionFallbackTimer = window.setTimeout(() => {
     part.descriptionFallbackTimer = null;
@@ -1216,7 +1150,6 @@ function refreshTopics() {
           loadRobotDescriptionFromRosapiParams(part);
         }
       });
-      updateCurrentConfigText();
     },
     (error) => {
       state.topicRefreshInFlight = false;
@@ -1261,8 +1194,6 @@ function handleJointState(part, message) {
   });
 
   part.jointUpdates += 1;
-  part.jointStatus = `${part.jointUpdates} updates`;
-  updatePartStatuses(part);
   updateGlobalStatuses();
 
   if (part.robot) {
@@ -1324,7 +1255,6 @@ function subscribePartTopics(part) {
         loadUrdfXmlForPart(part, message.data),
       );
       part.subscribedDescriptionTopicName = part.descriptionTopicName;
-      part.urdfStatus = "subscribed";
       loadRobotDescriptionFromRosapiParams(part);
     }
   }
@@ -1348,12 +1278,6 @@ function subscribePartTopics(part) {
       part.subscribedJointTopicName = part.jointStateTopicName;
     }
   }
-
-  if (!part.descriptionTopicName) {
-    part.urdfStatus = "not selected";
-  }
-  part.jointStatus = part.jointStateTopicName ? "subscribed" : "not selected";
-  updatePartStatuses(part);
   updateGlobalStatuses();
 }
 

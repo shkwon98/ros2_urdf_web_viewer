@@ -27,7 +27,7 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn('role="separator"', index_html)
         self.assertIn('aria-orientation="vertical"', index_html)
         self.assertNotIn("attachment", index_html.lower())
-        self.assertIn('id="config-json"', index_html)
+        self.assertNotIn('id="config-json"', index_html)
         self.assertNotIn('id="fixed-frame-label"', index_html)
         self.assertNotIn("Frame:", index_html)
         self.assertNotIn('id="refresh-topics-button"', index_html)
@@ -122,15 +122,16 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("updateMountTransforms", app_js)
         self.assertIn("rootToChildLink", app_js)
         self.assertIn("mount.origin", app_js)
-        self.assertIn("assemblyConfigSnapshot", app_js)
+        self.assertNotIn("assemblyConfigSnapshot", app_js)
+        self.assertNotIn("updateCurrentConfigText", app_js)
         self.assertNotIn("exportAssemblyConfig", app_js)
         self.assertNotIn("importAssemblyConfig", app_js)
         self.assertNotIn("localStorage", app_js)
         self.assertIn("Assembly Preset", index_html)
         self.assertIn("Mounts", index_html)
-        self.assertIn("Configuration", index_html)
+        self.assertNotIn("Configuration", index_html)
 
-    def test_configuration_action_buttons_are_removed(self):
+    def test_configuration_panel_is_removed(self):
         index_html = (PACKAGE_ROOT / "web" / "index.html").read_text(
             encoding="utf-8"
         )
@@ -140,7 +141,10 @@ class TestStaticPackageAssets(unittest.TestCase):
         )
         readme = (PACKAGE_ROOT / "README.md").read_text(encoding="utf-8")
 
-        self.assertIn('id="config-json"', index_html)
+        self.assertNotIn('id="config-json"', index_html)
+        self.assertNotIn("configJson", app_js)
+        self.assertNotIn("Assembly configuration JSON", index_html)
+        self.assertNotIn("Configuration", index_html)
         self.assertNotIn('id="save-config-button"', index_html)
         self.assertNotIn('id="load-config-button"', index_html)
         self.assertNotIn('id="export-config-button"', index_html)
@@ -197,15 +201,15 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn('`${publisher}:robot_description`', app_js)
         self.assertIn("JSON.parse(response.value)", app_js)
         self.assertIn("loadRobotDescriptionFromRosapiParams(part);", app_js)
-        self.assertIn('"no param publishers"', app_js)
-        self.assertIn('"param unavailable"', app_js)
+        self.assertIn("part.paramLookupInFlight = false", app_js)
 
-    def test_status_updates_are_safe_during_async_rerenders(self):
+    def test_unused_per_part_status_code_is_removed(self):
         app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
 
-        self.assertIn("if (!element) {", app_js)
-        self.assertIn("return;", app_js)
-        self.assertIn("function updatePartStatuses()", app_js)
+        self.assertNotIn("function updatePartStatuses()", app_js)
+        self.assertNotIn("updatePartStatuses(", app_js)
+        self.assertNotIn("part.urdfStatus", app_js)
+        self.assertNotIn("part.jointStatus", app_js)
 
     def test_topic_empty_placeholders_only_render_when_no_topics_exist(self):
         app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
