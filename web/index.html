@@ -52,19 +52,21 @@
         </section>
 
         <section class="rail-section">
-          <div class="section-heading">Topics</div>
+          <div class="section-heading">Assembly Preset</div>
           <label>
-            Description
-            <select id="robot-description-topic">
-              <option value="">Connect to discover topics</option>
-            </select>
+            Preset
+            <select id="assembly-preset"></select>
           </label>
-          <label>
-            Joint states
-            <select id="joint-states-topic">
-              <option value="">Connect to discover topics</option>
-            </select>
-          </label>
+        </section>
+
+        <section class="rail-section">
+          <div class="section-heading">Parts</div>
+          <div id="part-list" class="card-list"></div>
+        </section>
+
+        <section class="rail-section">
+          <div class="section-heading">Mounts</div>
+          <div id="mount-list" class="card-list"></div>
         </section>
 
         <section class="rail-section">
@@ -83,6 +85,16 @@
           </button>
         </section>
 
+        <section class="rail-section">
+          <div class="section-heading">Configuration</div>
+          <textarea
+            id="config-json"
+            rows="8"
+            spellcheck="false"
+            aria-label="Assembly configuration JSON"
+          ></textarea>
+        </section>
+
         <dl class="status-list">
           <div>
             <dt>ROS</dt>
@@ -98,6 +110,15 @@
           </div>
         </dl>
       </aside>
+
+      <div
+        id="rail-resizer"
+        class="rail-resizer"
+        role="separator"
+        aria-label="Resize controls"
+        aria-orientation="vertical"
+        tabindex="0"
+      ></div>
 
       <main class="viewer-stage">
         <canvas id="viewer-canvas"></canvas>

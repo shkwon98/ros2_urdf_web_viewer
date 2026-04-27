@@ -4,6 +4,7 @@ import unittest
 
 from ros2_urdf_web_viewer.run_server import (
     build_viewer_config,
+    cache_control_for_request_path,
     safe_resource_path,
 )
 
@@ -59,3 +60,13 @@ class TestRunServerHelpers(unittest.TestCase):
         self.assertNotIn("rosbridgeUrl", config)
         self.assertNotIn("assetBaseUrl", config)
         self.assertNotIn("fixedFrame", config)
+
+    def test_web_assets_are_not_cached_but_package_assets_can_be_cached(self):
+        self.assertEqual(cache_control_for_request_path("/app.js", 3600), "no-store")
+        self.assertEqual(
+            cache_control_for_request_path(
+                "/packages/example_robot_description/meshes/link.stl",
+                3600,
+            ),
+            "public, max-age=3600",
+        )

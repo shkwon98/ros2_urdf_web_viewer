@@ -12,6 +12,7 @@
   --amber: #c77b1b;
   --danger: #a43f35;
   --shadow: 0 18px 42px rgb(39 36 33 / 18%);
+  --rail-width: 420px;
 }
 
 * {
@@ -38,13 +39,14 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
 .app-shell {
   display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-columns: var(--rail-width) 8px minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
 }
@@ -59,6 +61,41 @@ select {
   background:
     linear-gradient(135deg, rgb(255 255 255 / 48%), transparent 38%),
     var(--rail);
+}
+
+.rail-resizer {
+  position: relative;
+  z-index: 5;
+  min-width: 8px;
+  border-right: 1px solid rgb(39 36 33 / 18%);
+  border-left: 1px solid rgb(255 250 240 / 54%);
+  background: linear-gradient(90deg, rgb(39 36 33 / 7%), rgb(255 250 240 / 28%));
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.rail-resizer::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 48px;
+  border-radius: 999px;
+  background: rgb(34 90 154 / 42%);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.rail-resizer:hover,
+.rail-resizer:focus-visible,
+.resizing-rail .rail-resizer {
+  background: rgb(34 90 154 / 14%);
+  outline: none;
+}
+
+.resizing-rail {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .brand-block {
@@ -119,16 +156,36 @@ label {
 }
 
 input[type="text"],
-select {
+input[type="number"],
+select,
+textarea {
   width: 100%;
   min-width: 0;
-  height: 38px;
   border: 1px solid #c9c0b1;
   border-radius: 6px;
   background: var(--field);
   color: var(--ink);
   padding: 0 10px;
   outline: none;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  height: 38px;
+}
+
+textarea {
+  min-height: 150px;
+  padding: 10px;
+  resize: vertical;
+  font-family:
+    "Cascadia Mono",
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+  font-size: 0.75rem;
+  line-height: 1.45;
 }
 
 select {
@@ -141,7 +198,9 @@ select:disabled {
 }
 
 input[type="text"]:focus,
-select:focus {
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgb(34 90 154 / 14%);
 }
@@ -185,6 +244,113 @@ button svg {
   width: 17px;
   height: 17px;
   flex: 0 0 auto;
+}
+
+.compact-button {
+  height: 34px;
+  font-size: 0.82rem;
+}
+
+.card-list {
+  display: grid;
+  gap: 10px;
+}
+
+.part-card,
+.mount-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d2c8b9;
+  border-radius: 8px;
+  background: rgb(255 250 240 / 52%);
+}
+
+.card-heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 780;
+}
+
+.card-heading div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.card-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-heading span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.mount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mount-grid label {
+  min-width: 0;
+  gap: 4px;
+  font-size: 0.7rem;
+}
+
+.readonly-field {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.readonly-value {
+  min-height: 38px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #d6ccbd;
+  border-radius: 6px;
+  background: rgb(255 250 240 / 38%);
+  color: var(--ink);
+  padding: 9px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offset-slider {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: 24px;
+  padding: 0;
+  accent-color: var(--blue);
+}
+
+.mount-status {
+  min-height: 28px;
+  padding: 6px 8px;
+  border: 1px solid #ded5c7;
+  border-radius: 6px;
+  background: rgb(255 250 240 / 50%);
+}
+
+.empty-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .toggle-line {
@@ -293,6 +459,10 @@ dd.error {
     grid-template-rows: auto minmax(420px, 1fr);
     min-height: 100vh;
     height: auto;
+  }
+
+  .rail-resizer {
+    display: none;
   }
 
   .control-rail {

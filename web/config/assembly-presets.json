@@ -1,0 +1,83 @@
+{
+  "single_robot": {
+    "label": "Single robot",
+    "parts": [
+      {
+        "id": "robot",
+        "robotName": "",
+        "descriptionTopic": "",
+        "jointStateTopic": ""
+      }
+    ]
+  },
+  "rby1_wuji_hands": {
+    "label": "RBY1 + Wuji hands",
+    "parts": [
+      {
+        "id": "body",
+        "robotName": "rby1",
+        "descriptionTopic": "/control/body/robot_description",
+        "jointStateTopic": "/sensors/proprio/body/joint_states",
+        "hiddenLinks": ["ee_left", "ee_right"],
+        "topicCandidates": {
+          "descriptions": [
+            "/control/body/robot_description"
+          ],
+          "joints": [
+            "/sensors/proprio/body/joint_states"
+          ]
+        },
+        "mounts": [
+          {
+            "id": "left_hand_to_rby1",
+            "parentLink": "ee_left",
+            "childPartId": "left_hand",
+            "origin": {
+              "xyz": [0, 0, 0],
+              "rpy": [0, 3.141592653589793, -0.7853981633974483]
+            }
+          },
+          {
+            "id": "right_hand_to_rby1",
+            "parentLink": "ee_right",
+            "childPartId": "right_hand",
+            "origin": {
+              "xyz": [0, 0, 0],
+              "rpy": [0, 3.141592653589793, 0.7853981633974483]
+            }
+          }
+        ]
+      },
+      {
+        "id": "left_hand",
+        "robotName": "wuji_hand",
+        "mountLink": "left_palm_link",
+        "descriptionTopic": "/control/hand_left/robot_description",
+        "jointStateTopic": "/sensors/proprio/hand_left/joint_states",
+        "topicCandidates": {
+          "descriptions": [
+            "/control/hand_left/robot_description"
+          ],
+          "joints": [
+            "/sensors/proprio/hand_left/joint_states"
+          ]
+        }
+      },
+      {
+        "id": "right_hand",
+        "robotName": "wuji_hand",
+        "mountLink": "right_palm_link",
+        "descriptionTopic": "/control/hand_right/robot_description",
+        "jointStateTopic": "/sensors/proprio/hand_right/joint_states",
+        "topicCandidates": {
+          "descriptions": [
+            "/control/hand_right/robot_description"
+          ],
+          "joints": [
+            "/sensors/proprio/hand_right/joint_states"
+          ]
+        }
+      }
+    ]
+  }
+}

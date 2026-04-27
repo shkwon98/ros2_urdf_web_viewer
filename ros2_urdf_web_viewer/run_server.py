@@ -62,6 +62,13 @@ def build_viewer_config(
     return config
 
 
+def cache_control_for_request_path(request_path: str, cache_seconds: int) -> str:
+    parsed_path = urlparse(request_path).path
+    if parsed_path.startswith("/packages/"):
+        return f"public, max-age={max(0, cache_seconds)}"
+    return "no-store"
+
+
 def default_web_root() -> Path:
     if get_package_share_directory is not None:
         try:
@@ -91,6 +98,11 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        if not urlparse(self.path).path.startswith("/packages/"):
+            self.send_header(
+                "Cache-Control",
+                cache_control_for_request_path(self.path, self.cache_seconds),
+            )
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -133,7 +145,6 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(content_length))
-        self.send_header("Cache-Control", "no-store")
         self.end_headers()
 
     def _send_package_file(self, request_path: str, head_only: bool = False):
@@ -170,7 +181,8 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(target.stat().st_size))
         self.send_header(
-            "Cache-Control", f"public, max-age={max(0, self.cache_seconds)}"
+            "Cache-Control",
+            cache_control_for_request_path(request_path, self.cache_seconds),
         )
         self.end_headers()
 
