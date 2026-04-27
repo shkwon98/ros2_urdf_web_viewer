@@ -12,7 +12,7 @@ class TestStaticPackageAssets(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn("ROS 2 URDF Web Viewer", index_html)
+        self.assertIn("Robot Web Assembly", index_html)
         self.assertIn("roslib.min.js", index_html)
         self.assertIn("urdf-loader", index_html)
         self.assertIn("three", index_html)
@@ -322,7 +322,7 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("robot_description_topic", launch_file)
         self.assertNotIn("joint_states_topic", launch_file)
         self.assertIn("rosbridge_port", launch_file)
-        self.assertIn("ros2_urdf_web_viewer_server", launch_file)
+        self.assertIn("robot_web_assembly_server", launch_file)
 
     def test_launch_arguments_are_documented_web_host_web_port_rosbridge_port(self):
         launch_file = (PACKAGE_ROOT / "launch" / "viewer.launch.py").read_text(
@@ -386,14 +386,17 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertNotIn("robot_state_publisher", launch_file)
         self.assertNotIn("joint_state_publisher_gui", launch_file)
         self.assertNotIn("xacro_file", launch_file)
-        self.assertIn("<name>ros2_urdf_web_viewer</name>", package_xml)
+        self.assertIn("<name>robot_web_assembly</name>", package_xml)
         self.assertIn("<exec_depend>rosapi</exec_depend>", package_xml)
-        self.assertNotIn("ros2_urdf_web_viewer_example", package_xml)
+        self.assertNotIn("ros2_urdf_web_viewer", package_xml)
+        self.assertNotIn("robot_web_assembly_example", package_xml)
         self.assertNotIn("<exec_depend>robot_state_publisher</exec_depend>", package_xml)
         self.assertNotIn("<exec_depend>xacro</exec_depend>", package_xml)
 
     def test_console_entrypoint_uses_run_server_module(self):
         setup_py = (PACKAGE_ROOT / "setup.py").read_text(encoding="utf-8")
 
-        self.assertIn("ros2_urdf_web_viewer.run_server:main", setup_py)
-        self.assertNotIn("ros2_urdf_web_viewer.asset_server:main", setup_py)
+        self.assertIn("robot_web_assembly_server", setup_py)
+        self.assertIn("robot_web_assembly.run_server:main", setup_py)
+        self.assertNotIn("ros2_urdf_web_viewer", setup_py)
+        self.assertNotIn("robot_web_assembly.asset_server:main", setup_py)

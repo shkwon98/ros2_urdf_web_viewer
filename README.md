@@ -1,12 +1,19 @@
-# ROS 2 URDF Web Viewer
+# Robot Web Assembly 🤖🧩
 
-Browser-based URDF visualization for ROS 2 systems. The viewer connects to ROS
-through rosbridge, discovers available topics through rosapi, loads URDF XML
-from a selected topic, and resolves `package://...` mesh paths through a small
-HTTP asset server.
+Not WebAssembly the runtime. Robot assembly on the web, literally.
 
-It is designed for quickly inspecting robot descriptions and joint states from
-a browser without building a custom frontend for each robot.
+🤖 walks into a browser; an assembled robot walks out. 🧩
+
+Keep your ROS graph modular. Let the browser snap the robot together.
+
+Robot Web Assembly lets each robot part keep publishing its own
+`robot_description` and `joint_states`; the web viewer discovers those live
+topics, loads the URDFs, streams joint motion, resolves `package://...` meshes,
+and composes the scene in Three.js.
+
+Use it when you want a live robot webviz without publishing a merged URDF, adding
+static TF just for visualization, or building a one-off frontend for every robot
+combination.
 
 ## Demo
 
@@ -16,15 +23,15 @@ a browser without building a custom frontend for each robot.
 
 ## Features
 
-- ROS 2 launch file that starts the web viewer, `rosbridge_websocket`, and
+- 🚀 ROS 2 launch file that starts the web viewer, `rosbridge_websocket`, and
   `rosapi_node`
-- Editable rosbridge WebSocket URL in the browser
-- Automatic topic discovery and refresh through `rosapi_node`
-- Multiple URDF models in one browser scene
-- Optional `sensor_msgs/msg/JointState` playback per model
-- Browser-side mount rules for composing independently published robot parts
-- `package://...` mesh loading through the included package asset server
-- No Node.js build step required for the bundled web app
+- 🔌 Editable rosbridge WebSocket URL in the browser
+- 🛰️ Automatic live topic discovery and refresh through `rosapi_node`
+- 🧩 Multiple URDF models in one browser scene
+- 🦾 Optional `sensor_msgs/msg/JointState` playback per model
+- 📐 Browser-side mount rules for composing independently published robot parts
+- 📦 `package://...` mesh loading through the included package asset server
+- 🪶 No Node.js build step required for the bundled web app
 
 ## Requirements
 
@@ -85,14 +92,14 @@ require editing `web/app.js`.
 ```bash
 cd <your_ros2_ws>
 rosdep install --from-paths src --ignore-src -r -y
-colcon build --packages-select ros2_urdf_web_viewer
+colcon build --packages-select robot_web_assembly
 source install/setup.bash
 ```
 
 ## Run
 
 ```bash
-ros2 launch ros2_urdf_web_viewer viewer.launch.py
+ros2 launch robot_web_assembly viewer.launch.py
 ```
 
 Open:
@@ -125,7 +132,7 @@ ROS graph through `rosapi_node`.
 Example:
 
 ```bash
-ros2 launch ros2_urdf_web_viewer viewer.launch.py \
+ros2 launch robot_web_assembly viewer.launch.py \
   web_host:=0.0.0.0 \
   web_port:=8080 \
   rosbridge_port:=9090
@@ -185,13 +192,13 @@ verify that the joint names match the names in the URDF.
 Run the package tests with:
 
 ```bash
-pytest -q src/ros2_urdf_web_viewer/tests
+pytest -q src/robot_web_assembly/tests
 ```
 
 Or through colcon:
 
 ```bash
-colcon test --packages-select ros2_urdf_web_viewer
+colcon test --packages-select robot_web_assembly
 ```
 
 ## License

@@ -42,8 +42,8 @@ def generate_launch_description():
                 output="screen",
             ),
             Node(
-                package="ros2_urdf_web_viewer",
-                executable="ros2_urdf_web_viewer_server",
+                package="robot_web_assembly",
+                executable="robot_web_assembly_server",
                 output="screen",
                 arguments=[
                     "--host",

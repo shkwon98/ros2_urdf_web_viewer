@@ -21,7 +21,7 @@ except (
     get_package_share_directory = None
 
 
-PACKAGE_NAME = "ros2_urdf_web_viewer"
+PACKAGE_NAME = "robot_web_assembly"
 
 
 def safe_resource_path(package_root: Path, relative_path: str) -> Path:
@@ -80,7 +80,7 @@ def default_web_root() -> Path:
 
 
 class ViewerRequestHandler(SimpleHTTPRequestHandler):
-    server_version = "Ros2UrdfWebViewer/0.1"
+    server_version = "RobotWebAssembly/0.1"
 
     def __init__(
         self,
@@ -193,7 +193,7 @@ class ViewerRequestHandler(SimpleHTTPRequestHandler):
 
 def make_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Serve the ROS 2 URDF web viewer."
+        description="Serve Robot Web Assembly."
     )
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
@@ -221,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
     with ThreadingHTTPServer((args.host, args.port), handler) as server:
         url_host = "localhost" if args.host in {"", "0.0.0.0"} else args.host
         print(
-            f"Serving ROS 2 URDF viewer at http://{url_host}:{args.port}",
+            f"Serving Robot Web Assembly at http://{url_host}:{args.port}",
             flush=True,
         )
         server.serve_forever()

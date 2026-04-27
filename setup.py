@@ -3,7 +3,7 @@ from pathlib import Path
 from setuptools import find_packages, setup
 
 
-package_name = "ros2_urdf_web_viewer"
+package_name = "robot_web_assembly"
 project_root = Path(__file__).resolve().parent
 
 
@@ -40,12 +40,12 @@ setup(
     zip_safe=True,
     maintainer="shkwon98",
     maintainer_email="shkwon98@snu.ac.kr",
-    description="Browser-based ROS 2 URDF web viewer.",
+    description="Live browser-side robot assembly and URDF visualization for ROS 2.",
     license="MIT",
     extras_require={"test": ["pytest"]},
     entry_points={
         "console_scripts": [
-            "ros2_urdf_web_viewer_server = ros2_urdf_web_viewer.run_server:main",
+            "robot_web_assembly_server = robot_web_assembly.run_server:main",
         ],
     },
 )

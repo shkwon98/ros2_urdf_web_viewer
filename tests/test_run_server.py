@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from ros2_urdf_web_viewer.run_server import (
+from robot_web_assembly.run_server import (
     build_viewer_config,
     cache_control_for_request_path,
     safe_resource_path,

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>ros2_urdf_web_viewer</name>
+  <name>robot_web_assembly</name>
   <version>0.1.0</version>
-  <description>Browser-based ROS 2 URDF web viewer using rosbridge, roslibjs, Three.js, and urdf-loader.</description>
+  <description>Live browser-side robot assembly and URDF visualization for ROS 2.</description>
   <maintainer email="shkwon98@snu.ac.kr">Sunghyun Kwon</maintainer>
   <license>MIT</license>
 
