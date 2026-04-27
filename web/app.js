@@ -446,7 +446,7 @@ function setupRailResizer() {
 }
 
 function resetView() {
-  camera.position.set(3.4, -4.6, 2.3);
+  camera.position.set(3.141592, 3.141592, 2.3);
   controls.target.set(0, 0, 0.75);
   controls.update();
 }
@@ -465,7 +465,7 @@ function fitRobot() {
 
   const maxSize = Math.max(size.x, size.y, size.z, 0.5);
   const distance = maxSize / (2 * Math.tan((camera.fov * Math.PI) / 360));
-  const direction = new THREE.Vector3(1.2, -1.6, 0.85).normalize();
+  const direction = new THREE.Vector3(3.141592, 3.141592, 1.55).normalize();
 
   controls.target.copy(center);
   camera.position.copy(center).add(direction.multiplyScalar(distance * 1.8));

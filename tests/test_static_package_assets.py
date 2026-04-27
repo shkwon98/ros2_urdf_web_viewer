@@ -189,6 +189,21 @@ class TestStaticPackageAssets(unittest.TestCase):
         self.assertIn("setPointerCapture", app_js)
         self.assertIn("resizeRenderer()", app_js)
 
+    def test_default_camera_views_robot_from_upper_right(self):
+        app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn("camera.position.set(3.141592, 3.141592, 2.3)", app_js)
+        self.assertIn(
+            "new THREE.Vector3(3.141592, 3.141592, 1.55).normalize()",
+            app_js,
+        )
+        self.assertNotIn("camera.position.set(3.4, 4.6, 2.3)", app_js)
+        self.assertNotIn("camera.position.set(3.4, -4.6, 2.3)", app_js)
+        self.assertNotIn(
+            "new THREE.Vector3(1.2, -1.6, 0.85).normalize()",
+            app_js,
+        )
+
     def test_robot_description_can_fallback_to_rosapi_parameter_lookup(self):
         app_js = (PACKAGE_ROOT / "web" / "app.js").read_text(encoding="utf-8")
 
